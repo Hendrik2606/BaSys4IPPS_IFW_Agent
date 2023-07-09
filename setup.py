@@ -13,6 +13,7 @@ required = [
     "pandas",
     "graphviz",
     "sympy",
+    "pyod"
 ]
 
 setup(

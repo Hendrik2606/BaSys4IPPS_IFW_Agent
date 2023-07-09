@@ -1,10 +1,10 @@
-"""Click module for accessing the agent"""
+"""Command line interface module"""
 
 from pathlib import Path
 import sys
 import click
 import yaml
-from basys4ipps_ifw_agent import CONFIG_PATH, VERSION
+from basys4ipps_ifw_agent import CONFIG_PATH, VERSION, write_config, read_config
 
 
 @click.group()
@@ -14,24 +14,41 @@ def main():
 
 
 @main.command()
-@click.option("--model-path", "-mp", prompt="Path to model file")
+@click.option("--alpha-safety-factor", "-af", prompt="Path to model file", type=float)
+def set_alpha_safety_factor(alpha_safety_factor: float):
+    """Set the alpha safety factor in the config"""
+    if not CONFIG_PATH.exists():
+        print(
+            f"Error, config path '{CONFIG_PATH.resolve().as_posix()}' does not exist!"
+        )
+        sys.exit(1)
+
+    config_map = read_config()
+
+    config_map["init_values"]["alpha_safety_factor"] = alpha_safety_factor
+
+    write_config(config_map)
+
+    print("Update successful!")
+
+
+@main.command()
+@click.option("--model-path", "-mp", prompt="Path to model file", type=str)
 def add_paths(model_path: str):
     """Add paths to training/tests files"""
     if not CONFIG_PATH.exists():
-        print(f"Error, config path does not exist!")
-        sys.exit(1)
+        print(
+            f"Error, config path '{CONFIG_PATH.resolve().as_posix()}' does not exist!"
+        )
+        sys.exit(1)   
 
-    print(f"Using config file '{CONFIG_PATH.resolve().as_posix()}'")
-
-    with open(CONFIG_PATH, "r", encoding="utf-8") as config_stream:
-        config_map = yaml.safe_load(config_stream)
+    config_map = read_config()
 
     config_map["model_path"] = Path(model_path).as_posix()
 
-    with open(CONFIG_PATH, "w", encoding="utf-8") as config_stream:
-        yaml.safe_dump(config_map, config_stream)
+    write_config(config_map)
 
-    print("Update successfull!")
+    print("Update successful!")
 
 
 if __name__ == "__main__":
