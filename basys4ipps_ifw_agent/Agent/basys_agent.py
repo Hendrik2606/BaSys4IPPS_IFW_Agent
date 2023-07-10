@@ -36,10 +36,9 @@ class BasysAgent:
                 "Using KNN outlier detection n_neighbors=5, method=largest"
             )
             self.outlier_detector_name = "KNN"
-            self.outlier_detector = KNN(n_neighbors=5, method="largest")
-            self.outlier_detector.decision_scores_
+            self.outlier_detector = KNN(n_neighbors=5, method="largest")            
 
-    def fit_outlier_detector(self, X_train: NDArray):
+    def fit(self, X_train: NDArray):
         """Generate general purpose features for the given training data and fit the model
 
         Parameters
@@ -64,10 +63,11 @@ class BasysAgent:
         self.logger.info("Fit the outlier detection model")
 
         self.outlier_detector.fit(X_train_std)
-        y_train_scores = self.outlier_detector.decision_scores_
+
+        self.y_train_scores = np.array(self.outlier_detector.decision_scores_)
 
         # Regularize scores based on basis
-        self.o_scores_regularized_train = y_train_scores - np.min(y_train_scores)
+        self.o_scores_regularized_train = self.y_train_scores - np.min(self.y_train_scores)
 
     def predict(self, X_test: NDArray) -> NDArray:
         """Generate general purpose features for the given test data and generate predictions
@@ -78,7 +78,7 @@ class BasysAgent:
 
         Returns
         ---
-        regularized decision score: NDArray
+        regularized decision score: NDArray, alarm: NDArray
         """
 
         self.logger.info("Extract features from test data")
@@ -110,7 +110,7 @@ class BasysAgent:
 
         o_scores_gaussian_test[o_scores_gaussian_test < 0] = 0
 
-        Alarm = o_scores_gaussian_test > self.basys_config.alpha_safety_factor
+        alarm = o_scores_gaussian_test > self.basys_config.alpha_safety_factor
 
         self.logger.info(
             "safety_factor=",
@@ -118,7 +118,10 @@ class BasysAgent:
             "Score_prob=",
             o_scores_gaussian_test,
             "Alarm=",
-            Alarm,
-            "exp_downtime",
-            "63 h",
+            alarm,
+            "exp_downtime"
         )
+    
+        expected_downtime_h: float = 1 # todo
+
+        return o_scores_gaussian_test, alarm, expected_downtime_h

@@ -18,13 +18,13 @@ def extract_default_features(x_signal: NDArray) -> NDArray:
     x_features: pandas.DataFrame, feature matrix
     """
 
-    x_features = pd.DataFrame(columns=["mean", "std"])
+    x_features = pd.DataFrame()
     """Extract features from numpy array"""
     x_features["mean"] = (mean := np.mean(x_signal, axis=0))
     x_features["std"] = (std := np.std(x_signal, axis=0))
     x_features["rms"] = (rms := np.sqrt(np.mean(x_signal**2, axis=0)))
-    x_features["skewness"] = skew(x_signal, axis=0)
-    x_features["kurt"] = kurtosis(x_signal, axis=0)
+    # x_features["skewness"] = skew(x_signal, axis=0)
+    #x_features["kurt"] = kurtosis(x_signal, axis=0)
     x_features["SNR"] = np.log10((mean**2 / std**2))
     x_features["peaktopeak"] = abs(
         np.max(abs(x_signal), axis=0) - np.min(abs(x_signal), axis=0)
