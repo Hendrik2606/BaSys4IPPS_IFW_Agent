@@ -5,7 +5,6 @@ from numpy.typing import NDArray
 import pandas as pd
 from scipy.stats import kurtosis, skew, iqr
 
-
 def extract_default_features(x_signal: NDArray) -> NDArray:
     """Extract the features from the given signal
 
