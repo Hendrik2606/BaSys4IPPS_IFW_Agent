@@ -1,4 +1,5 @@
-""""""
+"""Module providing configuration options for the basys agent"""
+# pylint: disable=too-many-instance-attributes
 
 from __future__ import annotations
 from dataclasses import asdict, dataclass
@@ -43,5 +44,4 @@ class BasysConfig:
 if __name__ == "__main__":
     BasysConfig().save()
 
-    config = BasysConfig.load()
-    pass
+    example_config = BasysConfig.load()
