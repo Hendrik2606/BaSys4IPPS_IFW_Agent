@@ -7,7 +7,7 @@ required = [
     "pyyaml",
     "statsmodels",
     "scipy",
-    "sklearn",
+    "scikit-learn",
     "click",
     "tqdm",
     "numpy<=1.22",
@@ -15,12 +15,11 @@ required = [
     "graphviz",
     "sympy",
     "pyod",
-    "failure-recognition@git+https://github.com/Gerrino/failure-recognition/#egg=failure-recognition"
+    "failure-recognition-signal-processing@git+https://github.com/Gerrino/failure_recognition_signal_processing/#egg=failure-recognition-signal-processing"
 ]
 
 setup(
-    name="basys4ipps_ifw_agent",
-    packages=find_namespace_packages(include=['failure_recognition.*']),
+    name="basys4ipps_ifw_agent",    
     version=VERSION,
     install_requires=required,
     url="https://github.com/Hendrik2606/BaSys4IPPS_IFW_Agent",
@@ -28,6 +27,7 @@ setup(
         "dev": ["pylint", "black", "sphinx"],
     },
     entry_points={"console_scripts": ["basys-agent = cli:main"]},
-    py_modules=['basys4ipps_ifw_agent'],    
+    py_modules=['basys4ipps_ifw_agent'],
+    include_package_data=True
 )
 # winget install graphviz

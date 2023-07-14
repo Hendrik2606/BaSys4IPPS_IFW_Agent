@@ -1,9 +1,20 @@
 """Module for feature extraction"""
 
+from os import PathLike
 import numpy as np
 from numpy.typing import NDArray
 import pandas as pd
 from scipy.stats import kurtosis, skew, iqr
+
+ 
+
+def extract_tsfresh_features(X_t, features_json: PathLike):
+    """Compute a tsfresh feature matrix given the time vector"""
+    from failure_recognition.failure_recognition_signal_processing.failure_recognition.signal_processing.feature_container import FeatureContainer
+
+    container = FeatureContainer()
+    container.load(features_json, PATH_DICT["forest_params"])
+
 
 def extract_default_features(x_signal: NDArray) -> NDArray:
     """Extract the features from the given signal
