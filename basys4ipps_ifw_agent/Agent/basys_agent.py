@@ -2,7 +2,11 @@ from dataclasses import dataclass
 import logging
 
 from scipy import special
-from basys4ipps_ifw_agent.Agent.extract_features import extract_default_features
+from basys4ipps_ifw_agent import BASYS_LOGGER
+from basys4ipps_ifw_agent.agent.extract_features import (
+    extract_default_features,
+    extract_tsfresh_features,
+)
 from basys4ipps_ifw_agent.basys_config import BasysConfig
 from sklearn.preprocessing import StandardScaler
 
@@ -25,7 +29,8 @@ class BasysAgent:
 
     def __post_init__(self):
         if self.logger is None:
-            self.logger = logging.getLogger("BasysLogger")
+            self.logger = logging.getLogger(BASYS_LOGGER)
+            self.logger.setLevel(logging.INFO)
 
         if self.scaler is None:
             self.logger.info("Using default StandardScaler")
@@ -35,10 +40,18 @@ class BasysAgent:
             self.logger.info(
                 "Using KNN outlier detection n_neighbors=5, method=largest"
             )
-            self.outlier_detector_name = "KNN"
-            self.outlier_detector = KNN(n_neighbors=5, method="largest")            
+            self.outlier_detector_name = self.basys_config.outlier_detector_name
 
-    def fit(self, X_train: NDArray):
+            if self.outlier_detector_name == "KNN":
+                self.outlier_detector = KNN(
+                    **self.basys_config.outlier_detection_model_paramters["KNN"]
+                )
+            else:
+                raise NotImplementedError(
+                    f"Outlier model detection not implemented for {self.outlier_detector_name}"
+                )
+
+    def fit(self, X_train: NDArray, basys_config: BasysConfig):
         """Generate general purpose features for the given training data and fit the model
 
         Parameters
@@ -51,7 +64,15 @@ class BasysAgent:
         """
 
         self.logger.info("Extract features from training data")
-        X_train_feat = extract_default_features(X_train)
+
+        if not basys_config.use_tsfresh_features:
+            X_train_feat = extract_default_features(X_train)
+        else:
+            X_train_feat = extract_tsfresh_features(
+                X_train,
+                basys_config.tsfresh_features,
+                basys_config.tsfresh_random_forest,
+            )
 
         # Scale the feature vector
 
@@ -67,9 +88,11 @@ class BasysAgent:
         self.y_train_scores = np.array(self.outlier_detector.decision_scores_)
 
         # Regularize scores based on basis
-        self.o_scores_regularized_train = self.y_train_scores - np.min(self.y_train_scores)
+        self.o_scores_regularized_train = self.y_train_scores - np.min(
+            self.y_train_scores
+        )
 
-    def predict(self, X_test: NDArray) -> NDArray:
+    def predict(self, X_test: NDArray, basys_config: BasysConfig) -> NDArray:
         """Generate general purpose features for the given test data and generate predictions
 
         Parameters
@@ -82,7 +105,15 @@ class BasysAgent:
         """
 
         self.logger.info("Extract features from test data")
-        X_test_feat = extract_default_features(X_test)
+
+        if not basys_config.use_tsfresh_features:
+            X_test_feat = extract_default_features(X_test)
+        else:
+            X_test_feat = extract_tsfresh_features(
+                X_test,
+                basys_config.tsfresh_features,
+                basys_config.tsfresh_random_forest,
+            )
 
         # standardize test data
         X_test_std = self.scaler.transform(X_test_feat)
@@ -111,17 +142,14 @@ class BasysAgent:
         o_scores_gaussian_test[o_scores_gaussian_test < 0] = 0
 
         alarm = o_scores_gaussian_test > self.basys_config.alpha_safety_factor
+        expected_downtime_h: float = 1  # todo
 
         self.logger.info(
-            "safety_factor=",
+            "safety_factor=%f,\nscore_prob=%s\nalarm=%s\nexp_downtime=%s",
             self.basys_config.alpha_safety_factor,
-            "Score_prob=",
-            o_scores_gaussian_test,
-            "Alarm=",
-            alarm,
-            "exp_downtime"
+            str(o_scores_gaussian_test),
+            str(alarm),
+            expected_downtime_h,
         )
-    
-        expected_downtime_h: float = 1 # todo
 
         return o_scores_gaussian_test, alarm, expected_downtime_h
