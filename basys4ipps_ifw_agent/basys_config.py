@@ -4,7 +4,6 @@
 from __future__ import annotations
 from dataclasses import asdict, dataclass
 from datetime import datetime
-from typing import Tuple
 from basys4ipps_ifw_agent import CONFIG_VERSION
 
 from basys4ipps_ifw_agent.access_config import read_config, write_config

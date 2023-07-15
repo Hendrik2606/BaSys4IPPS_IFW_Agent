@@ -1,8 +1,9 @@
+"""Module for configuration management"""
+
 from os import PathLike
 from pathlib import Path
-from typing import Union
 import yaml
-from basys4ipps_ifw_agent import CONFIG_PATH, CONFIG_VERSION
+from basys4ipps_ifw_agent import CONFIG_PATH
 
 
 def read_config(config_type: type, path: PathLike = None) -> type:

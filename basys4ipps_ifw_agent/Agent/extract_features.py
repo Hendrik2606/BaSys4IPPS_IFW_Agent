@@ -1,16 +1,17 @@
 """Module for feature extraction"""
 
 from os import PathLike
-from typing import List
 import numpy as np
 from numpy.typing import NDArray
 import pandas as pd
-from scipy.stats import kurtosis, skew, iqr
+from scipy.stats import iqr  # , kurtosis, skew
 
 from failure_recognition_signal_processing.feature_container import FeatureContainer
 
 
-def convert_sensor_data_to_tsfresh_format(sensor_data: any, sensor_name: str, time_column: pd.DataFrame = None) -> pd.DataFrame:
+def convert_sensor_data_to_tsfresh_format(
+    sensor_data: any, sensor_name: str, time_column: pd.DataFrame = None
+) -> pd.DataFrame:
     """Convert the given sensor data to a pd.DataFrame in tsfresh format (id, time, name_sensor)
 
     Parameters
@@ -21,23 +22,32 @@ def convert_sensor_data_to_tsfresh_format(sensor_data: any, sensor_name: str, ti
 
     Returns
     ---
-    timeseries_tsfresh: pd.DataFrame, timeseries in tsfresh format with 'time', 'id', 'sensor_name' columns
+    timeseries_tsfresh: pd.DataFrame, timeseries in tsfresh format
+                        with 'time', 'id', 'sensor_name' columns
     """
     sensor_data = pd.DataFrame(sensor_data)
     out_frame = pd.DataFrame(columns=["id", "time", sensor_name])
 
     for ts_id in range(sensor_data.shape[1]):
-        x_new_rows = pd.DataFrame({sensor_name: sensor_data.iloc[:, ts_id]})  
+        x_new_rows = pd.DataFrame({sensor_name: sensor_data.iloc[:, ts_id]})
         x_new_rows.insert(0, "id", ts_id * np.ones((x_new_rows.shape[0], 1)))
-        x_new_rows.insert(0, "time", x_new_rows.index if time_column is None else pd.DataFrame(time_column))
+        x_new_rows.insert(
+            0,
+            "time",
+            x_new_rows.index if time_column is None else pd.DataFrame(time_column),
+        )
 
         if out_frame.shape[0] == 0:
             out_frame = pd.DataFrame(x_new_rows)
         else:
-            out_frame = pd.concat([out_frame.reset_index(drop=True), x_new_rows.reset_index(drop=True)], axis=0)
-    
-    #out_frame.columns = ["id", "time", sensor_name] 
+            out_frame = pd.concat(
+                [out_frame.reset_index(drop=True), x_new_rows.reset_index(drop=True)],
+                axis=0,
+            )
+
+    # out_frame.columns = ["id", "time", sensor_name]
     return out_frame
+
 
 # def convert_timeseries_to_tsfresh(
 #     timeseries: pd.DataFrame, name_time_column: str = None
@@ -64,7 +74,7 @@ def convert_sensor_data_to_tsfresh_format(sensor_data: any, sensor_name: str, ti
 def extract_tsfresh_features(
     timeseries: pd.DataFrame,
     features_json: PathLike,
-    forest_params_json: PathLike,   
+    forest_params_json: PathLike,
 ) -> pd.DataFrame:
     """Compute a tsfresh feature matrix given the time vector
 
@@ -80,15 +90,13 @@ def extract_tsfresh_features(
     feature_state: pd.DataFrame
     """
 
-    if any([x not in timeseries.columns for x in ["time", "id"]]):
+    if any(x not in timeseries.columns for x in ["time", "id"]):
         raise ValueError("Missing columns id or time!")
 
     container = FeatureContainer()
     container.load(features_json, forest_params_json)
 
-    container.compute_feature_state(
-        timeseries, cfg=None, compute_for_all_features=True
-    )
+    container.compute_feature_state(timeseries, cfg=None, compute_for_all_features=True)
 
     return container.feature_state
 
@@ -106,7 +114,7 @@ def extract_default_features(x_signal: NDArray) -> NDArray:
     """
 
     x_features = pd.DataFrame()
-    """Extract features from numpy array"""
+    # Extract features from numpy array
     x_features["mean"] = (mean := np.mean(x_signal, axis=0))
     x_features["std"] = (std := np.std(x_signal, axis=0))
     x_features["rms"] = (rms := np.sqrt(np.mean(x_signal**2, axis=0)))
@@ -124,7 +132,3 @@ def extract_default_features(x_signal: NDArray) -> NDArray:
     x_features["mi"] = np.max(x_signal, axis=0)
 
     return x_features
-
-
-if __name__ == "__main__":
-    extract_tsfresh_features(None)
