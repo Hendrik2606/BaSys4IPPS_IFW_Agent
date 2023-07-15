@@ -15,6 +15,7 @@ required = [
     "graphviz",
     "sympy",
     "pyod",
+    "packaging",
     "failure-recognition-signal-processing@git+https://github.com/Gerrino/failure_recognition_signal_processing/#egg=failure-recognition-signal-processing"
 ]
 

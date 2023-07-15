@@ -1,41 +1,31 @@
-from datetime import datetime
+from os import PathLike
+from pathlib import Path
+from typing import Union
 import yaml
-from basys4ipps_ifw_agent import CONFIG_PATH
+from basys4ipps_ifw_agent import CONFIG_PATH, CONFIG_VERSION
 
 
-def read_config() -> dict:
+def read_config(config_type: type, path: PathLike = None) -> type:
     """Read the config file"""
-    print(f"Reading config file '{CONFIG_PATH.resolve().as_posix()}'")
+    path = CONFIG_PATH if path is None else Path(path)
 
-    with open(CONFIG_PATH, "r", encoding="utf-8") as config_stream:
+    print(f"Reading config file '{path.resolve().as_posix()}'")
+
+    if not path.exists():
+        print("Config file not found!")
+        return None
+
+    with open(path, "r", encoding="utf-8") as config_stream:
         _config_map = yaml.safe_load(config_stream)
-    return _config_map
+
+    return config_type(**_config_map)
 
 
-def write_config(_config_map: dict):
+def write_config(_config_map: dict, path: PathLike = None):
     """Read the config file"""
-    print(f"Writing to config file '{CONFIG_PATH.resolve().as_posix()}'")
+    path = CONFIG_PATH if path is None else Path(path)
 
-    with open(CONFIG_PATH, "w", encoding="utf-8") as config_stream:
+    print(f"Writing to config file '{path.resolve().as_posix()}'")
+
+    with open(path, "w", encoding="utf-8") as config_stream:
         yaml.safe_dump(_config_map, config_stream)
-
-
-_default_config_map = {
-    "created": str(datetime.now()),
-}
-
-
-if not CONFIG_PATH.exists():
-    write_config(_default_config_map)
-    print(
-        f"Config file '{CONFIG_PATH.resolve().as_posix()}' does not exist and is created!"
-    )
-else:
-    _config_map = read_config()
-    missing_keys = set(_default_config_map).difference(_config_map)
-
-    for k in missing_keys:
-        _config_map[k] = _default_config_map[k]
-
-    if missing_keys:
-        write_config(_config_map)
