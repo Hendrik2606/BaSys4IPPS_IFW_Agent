@@ -1,0 +1,20 @@
+version: 0.2.1
+created: '2023-07-16 17:19:18.818419'
+use_tsfresh_features: true
+tsfresh_features: ./examples/tsfresh_features.json
+tsfresh_random_forest: ./examples/tsfresh_random_forest.json
+default_csv_dir_path: ./examples/train
+outlier_detector_name: KNN
+outlier_score_scaling: gaussian
+alpha_safety_factor: 0.9995
+feature_group: general_purpose
+feature_scaling_method: standardize
+learning_type: static
+machine_component: axis_drive
+outlier_detection_model_paramters:
+  KNN:
+    method: largest
+    n_neighbors: 5
+test_data_config:
+  segmentation_start: 20
+  segmentation_end: 710
