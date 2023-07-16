@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 
 from basys4ipps_ifw_agent.agent.extract_features import convert_sensor_data_to_tsfresh_format
+from basys4ipps_ifw_agent.basys_config import BasysConfig
 
 
 def get_test_files(directory: str) -> list:
@@ -24,7 +25,8 @@ def get_test_files(directory: str) -> list:
     return all_files
 
 
-def example_sensor_data(all_files: List[PathLike], training_index, test_index: int, sensor: int):
+def example_sensor_data(all_files: List[PathLike], training_index, test_index: int, sensor: int,
+                        basys_config: BasysConfig):
     """Get example sensor data for training test data and testing on a single timeseries
     
     Parameters
@@ -39,9 +41,9 @@ def example_sensor_data(all_files: List[PathLike], training_index, test_index: i
     # Segmentieren der Zeitreihen
 
     # Loesche ab Begin_Del 1769 / 710
-    Begin_Del = 710
+    Begin_Del = basys_config.test_data_config.segmentation_end
     # Loesche die ersten Teil
-    To_Del = 20
+    To_Del = basys_config.test_data_config.segementation_start
 
     Num_Pro = 139
 

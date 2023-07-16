@@ -10,6 +10,14 @@ from basys4ipps_ifw_agent.access_config import read_config, write_config
 
 
 @dataclass
+class TestDataConfig:
+    """Class containing config for preparing test data"""
+
+    segementation_start: int = 20
+    segmentation_end: int = 710
+
+
+@dataclass
 class BasysConfig:
     """Config for training and prediction"""
 
@@ -27,16 +35,20 @@ class BasysConfig:
     feature_scaling_method: str = "standardize"
     learning_type: str = "static"
     machine_component: str = "axis_drive"
-    segementation_start: int = 20
-    segmentation_end: int = 710
-
     outlier_detection_model_paramters: dict = None
+    test_data_config: TestDataConfig = None
 
     def __post_init__(self):
         if self.outlier_detection_model_paramters is None:
             self.outlier_detection_model_paramters = {
-            "KNN": {"n_neighbors": 5, "method": "largest"}
-        }
+                "KNN": {"n_neighbors": 5, "method": "largest"}
+            }
+
+        if self.test_data_config is None:
+            self.test_data_config = TestDataConfig()
+
+        if isinstance(self.test_data_config, dict):
+            self.test_data_config = TestDataConfig(**self.test_data_config)
 
     def save(self):
         """safe the config"""
@@ -62,6 +74,8 @@ class BasysConfig:
 
 
 if __name__ == "__main__":
-    BasysConfig().save()
+    # BasysConfig(CONFIG_VERSION).save()
 
     example_config = BasysConfig.load()
+    example_config.save()
+    pass

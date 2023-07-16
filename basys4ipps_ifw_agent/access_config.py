@@ -3,7 +3,8 @@
 from os import PathLike
 from pathlib import Path
 import yaml
-from basys4ipps_ifw_agent import CONFIG_PATH
+from packaging import version
+from basys4ipps_ifw_agent import CONFIG_PATH, CONFIG_VERSION
 
 
 def read_config(config_type: type, path: PathLike = None) -> type:
@@ -17,7 +18,10 @@ def read_config(config_type: type, path: PathLike = None) -> type:
         return None
 
     with open(path, "r", encoding="utf-8") as config_stream:
-        _config_map = yaml.safe_load(config_stream)
+        _config_map: dict = yaml.safe_load(config_stream)
+
+    if version.parse(_config_map.get("version")) < version.parse(CONFIG_VERSION):
+        raise ValueError(f"Found deprecated config file version {_config_map.get('version')}!")
 
     return config_type(**_config_map)
 

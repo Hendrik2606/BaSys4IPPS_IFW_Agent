@@ -1,5 +1,5 @@
 alpha_safety_factor: 0.99999
-created: '2023-07-15 18:20:25.198424'
+created: '2023-07-16 12:16:30.067835'
 feature_group: general_purpose
 feature_scaling_method: standardize
 learning_type: static
@@ -10,9 +10,10 @@ outlier_detection_model_paramters:
     n_neighbors: 5
 outlier_detector_name: KNN
 outlier_score_scaling: gaussian
-segementation_start: 20
-segmentation_end: 710
+test_data_config:
+  segementation_start: 20
+  segmentation_end: 710
 tsfresh_features: ./examples/tsfresh_features.json
 tsfresh_random_forest: ./examples/tsfresh_random_forest.json
 use_tsfresh_features: false
-version: 0.1.1
+version: 0.2.1
