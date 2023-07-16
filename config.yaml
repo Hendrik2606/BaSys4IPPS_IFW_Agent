@@ -11,7 +11,7 @@ outlier_detection_model_paramters:
 outlier_detector_name: KNN
 outlier_score_scaling: gaussian
 test_data_config:
-  segementation_start: 20
+  segmentation_start: 20
   segmentation_end: 710
 tsfresh_features: ./examples/tsfresh_features.json
 tsfresh_random_forest: ./examples/tsfresh_random_forest.json

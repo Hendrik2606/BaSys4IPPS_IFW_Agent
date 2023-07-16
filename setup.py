@@ -27,7 +27,7 @@ setup(
     extras_require={
         "dev": ["pylint", "black", "sphinx"],
     },
-    entry_points={"console_scripts": ["basys-agent = cli:main"]},
+    entry_points={"console_scripts": ["basys-agent = cli:main", "basys-load = cli:load_data"]},
     py_modules=['basys4ipps_ifw_agent'],
     include_package_data=True
 )
