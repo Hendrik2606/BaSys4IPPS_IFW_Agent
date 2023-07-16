@@ -4,6 +4,7 @@
 from __future__ import annotations
 from dataclasses import asdict, dataclass
 from datetime import datetime
+from os import PathLike
 from basys4ipps_ifw_agent import CONFIG_VERSION
 
 from basys4ipps_ifw_agent.access_config import read_config, write_config
@@ -13,7 +14,7 @@ from basys4ipps_ifw_agent.access_config import read_config, write_config
 class TestDataConfig:
     """Class containing config for preparing test data"""
 
-    segementation_start: int = 20
+    segmentation_start: int = 20
     segmentation_end: int = 710
 
 
@@ -24,9 +25,10 @@ class BasysConfig:
     version: str
     created: str = str(datetime.min)
 
-    use_tsfresh_features: bool = False
+    use_tsfresh_features: bool = True
     tsfresh_features: str = "./examples/tsfresh_features.json"
     tsfresh_random_forest: str = "./examples/tsfresh_random_forest.json"
+    default_csv_dir_path: str = "./examples/train"
 
     outlier_detector_name: str = "KNN"
     outlier_score_scaling: str = "gaussian"
@@ -57,9 +59,9 @@ class BasysConfig:
         write_config(config_map)
 
     @classmethod
-    def load(cls, create_if_none: bool = False) -> BasysConfig:
+    def load(cls, path: PathLike = None, create_if_none: bool = False) -> BasysConfig:
         """load the config"""
-        config: BasysConfig = read_config(BasysConfig)
+        config: BasysConfig = read_config(BasysConfig, path=path)
 
         if not isinstance(config, BasysConfig) and create_if_none:
             new_config = BasysConfig(version=CONFIG_VERSION)
@@ -76,6 +78,6 @@ class BasysConfig:
 if __name__ == "__main__":
     # BasysConfig(CONFIG_VERSION).save()
 
-    example_config = BasysConfig.load()
+    example_config = BasysConfig.load(create_if_none=True)
     example_config.save()
     pass

@@ -5,14 +5,20 @@ from typing import List
 import numpy as np
 import pandas as pd
 
-from basys4ipps_ifw_agent.agent.extract_features import convert_sensor_data_to_tsfresh_format
+from basys4ipps_ifw_agent.agent.extract_features import (
+    convert_sensor_data_to_tsfresh_format,
+)
 from basys4ipps_ifw_agent.basys_config import BasysConfig
 
 
 def get_test_files(directory: str) -> list:
     """Get all csv files in the given directory
+
+    Returns
+    ---
+    path_files: List[PathLike], list containing path to the sensor data csv files
     """
-    if not isinstance(directory, str) or not (path:=Path(directory)).is_dir():
+    if not isinstance(directory, str) or not (path := Path(directory)).is_dir():
         raise ValueError(f"Input {directory} is not a valid directory!")
 
     all_files = glob.glob(path.as_posix() + "/*.csv")
@@ -25,63 +31,107 @@ def get_test_files(directory: str) -> list:
     return all_files
 
 
-def example_sensor_data(all_files: List[PathLike], training_index, test_index: int, sensor: int,
-                        basys_config: BasysConfig):
+def load_sensor_data(all_files: List[PathLike], sensor: int, basys_config: BasysConfig):
+    """Prepare the sensor data given a list of csv files. Each csv file
+    represents a sensor
+
+    Returns
+    ---
+    sensor_data: pd.DataFrame, df_time: pd.DataFrame
+    """
+    np.random.seed(1234)
+    # Segmentieren der Zeitreihen
+
+    # Loesche ab begin_Del 1769 / 710
+    begin_Del = basys_config.test_data_config.segmentation_end
+    # Loesche die ersten Teil
+    to_Del = basys_config.test_data_config.segmentation_start
+
+    num_pro = 139
+
+    # Laden der Trainingsdaten
+    sensor_data = pd.read_csv(all_files[sensor - 1], decimal=",", sep=";", header=0)
+
+    # Segmentieren der Daten
+
+    sensor_data = sensor_data.drop(sensor_data.index[begin_Del : len(sensor_data)])
+    sensor_data = sensor_data.drop(sensor_data.index[0:to_Del])
+
+    # Datenformat float
+    sensor_data = sensor_data.to_numpy().astype("float64")
+
+    # Variable for time entries
+    df_time = sensor_data[:, 0]
+
+    # delete nan columns
+    sensor_data = sensor_data[:, ~np.isnan(sensor_data).any(axis=0)]
+
+    # delete first column (time entries)
+    sensor_data = sensor_data[:, 1 : num_pro + 1]
+
+    # Convert
+    sensor_data[sensor_data == -2.8026e-45] = -0.0001
+    sensor_data[sensor_data == 2.8026e-45] = 0.0001
+
+    sensor_data[sensor_data == -2.8e-41] = -0.0001
+    sensor_data[sensor_data == 2.8e-41] = 0.0001
+
+    return sensor_data, df_time
+
+
+def split_data_tsfresh(
+    sensor_data: pd.DataFrame,
+    df_time: pd.DataFrame,
+    sensor: int,
+    training_index: list,
+    test_index: int,
+):
+    """Split the given sensor data into test and training data
+    and return the data frames in tsfresh format
+
+    Returns
+    ---
+    x_test: pd.DataFrame (tsfresh format), x_train: pd.DataFrame (tsfresh format)
+    """
+    x_train = sensor_data[:, training_index]
+    x_test = sensor_data[:, test_index]
+
+    x_test = x_test.transpose().reshape(-1, 1)
+
+    x_train = convert_sensor_data_to_tsfresh_format(
+        x_train, f"sensor_{sensor}", time_column=df_time
+    )
+    x_test = convert_sensor_data_to_tsfresh_format(
+        x_test, f"sensor_{sensor}", time_column=df_time
+    )
+
+    return x_train, x_test
+
+
+def example_sensor_data(
+    all_files: List[PathLike],
+    training_index,
+    test_index: int,
+    sensor: int,
+    basys_config: BasysConfig,
+):
     """Get example sensor data for training test data and testing on a single timeseries
-    
+
     Parameters
     ---
 
     Returns
     ---
 
-    x_train: pd.DataFrame, x_test: pd.DataFrame,
+    x_train: pd.DataFrame, training data in tsfresh format
+    x_test: pd.DataFrame, test column
     """
-    np.random.seed(1234)
-    # Segmentieren der Zeitreihen
+    sensor_data, df_time = load_sensor_data(all_files, sensor, basys_config)
 
-    # Loesche ab Begin_Del 1769 / 710
-    Begin_Del = basys_config.test_data_config.segmentation_end
-    # Loesche die ersten Teil
-    To_Del = basys_config.test_data_config.segementation_start
+    ## Define x_train and x_test
 
-    Num_Pro = 139
+    x_train_tsfresh, x_test_tsfresh = split_data_tsfresh(
+        sensor_data, df_time, sensor, training_index, test_index
+    )
 
-    # Laden der Trainingsdaten
-    train_data = pd.read_csv(all_files[sensor - 1], decimal=",", sep=";", header=0)
-
-    # Segmentieren der Daten
-
-    train_data = train_data.drop(train_data.index[Begin_Del : len(train_data)])
-    train_data = train_data.drop(train_data.index[0:To_Del])
-
-    # Datenformat float
-    train_data = train_data.to_numpy().astype("float64")
-
-    # Variable for time entries
-    time = train_data[:, 0]
-
-    # delete nan columns
-    train_data = train_data[:, ~np.isnan(train_data).any(axis=0)]
-
-    # delete first column (time entries)
-    train_data = train_data[:, 1 : Num_Pro + 1]
-
-    # Convert
-    train_data[train_data == -2.8026e-45] = -0.0001
-    train_data[train_data == 2.8026e-45] = 0.0001
-
-    train_data[train_data == -2.8e-41] = -0.0001
-    train_data[train_data == 2.8e-41] = 0.0001
-
-    ## Define X_train and X_test
-
-    x_train = train_data[:, training_index]
-    x_test = train_data[:, test_index]
-
-    x_test = x_test.transpose().reshape(-1, 1)
-
-    x_train = convert_sensor_data_to_tsfresh_format(x_train, f"sensor_{sensor}", time_column=pd.DataFrame(time))
-    x_test = convert_sensor_data_to_tsfresh_format(x_test, f"sensor_{sensor}", time_column=pd.DataFrame(time))
-
-    return x_train, x_test
+    return x_train_tsfresh, x_test_tsfresh
