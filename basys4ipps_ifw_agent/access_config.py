@@ -33,4 +33,4 @@ def write_config(_config_map: dict, path: PathLike = None):
     print(f"Writing to config file '{path.resolve().as_posix()}'")
 
     with open(path, "w", encoding="utf-8") as config_stream:
-        yaml.safe_dump(_config_map, config_stream)
+        yaml.safe_dump(_config_map, config_stream, sort_keys=False)

@@ -50,7 +50,7 @@ def load_sensor_data(all_files: List[PathLike], sensor: int, basys_config: Basys
     num_pro = 139
 
     # Laden der Trainingsdaten
-    sensor_data = pd.read_csv(all_files[sensor - 1], decimal=",", sep=";", header=0)
+    sensor_data = pd.read_csv(all_files[sensor - 1], decimal=",", sep=";", header=0, low_memory=False)
 
     # Segmentieren der Daten
 
@@ -79,12 +79,13 @@ def load_sensor_data(all_files: List[PathLike], sensor: int, basys_config: Basys
     return sensor_data, df_time
 
 
-def split_data_tsfresh(
+def split_sensor_data(
     sensor_data: pd.DataFrame,
     df_time: pd.DataFrame,
     sensor: int,
     training_index: list,
     test_index: int,
+    basys_config: BasysConfig
 ):
     """Split the given sensor data into test and training data
     and return the data frames in tsfresh format
@@ -97,13 +98,14 @@ def split_data_tsfresh(
     x_test = sensor_data[:, test_index]
 
     x_test = x_test.transpose().reshape(-1, 1)
-
-    x_train = convert_sensor_data_to_tsfresh_format(
-        x_train, f"sensor_{sensor}", time_column=df_time
-    )
-    x_test = convert_sensor_data_to_tsfresh_format(
-        x_test, f"sensor_{sensor}", time_column=df_time
-    )
+    
+    if basys_config.use_tsfresh_features:
+        x_train = convert_sensor_data_to_tsfresh_format(
+            x_train, f"sensor_{sensor}", time_column=df_time
+        )
+        x_test = convert_sensor_data_to_tsfresh_format(
+            x_test, f"sensor_{sensor}", time_column=df_time
+        )
 
     return x_train, x_test
 
@@ -130,8 +132,8 @@ def example_sensor_data(
 
     ## Define x_train and x_test
 
-    x_train_tsfresh, x_test_tsfresh = split_data_tsfresh(
-        sensor_data, df_time, sensor, training_index, test_index
+    x_train_tsfresh, x_test_tsfresh = split_sensor_data(
+        sensor_data, df_time, sensor, training_index, test_index, basys_config
     )
 
     return x_train_tsfresh, x_test_tsfresh

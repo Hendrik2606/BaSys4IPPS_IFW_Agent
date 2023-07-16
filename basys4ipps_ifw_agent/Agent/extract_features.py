@@ -90,6 +90,8 @@ def extract_tsfresh_features(
     feature_state: pd.DataFrame
     """
 
+    print("Using tsfresh features from ", features_json)
+
     if any(x not in timeseries.columns for x in ["time", "id"]):
         raise ValueError("Missing columns id or time!")
 
@@ -130,5 +132,7 @@ def extract_default_features(x_signal: NDArray) -> NDArray:
     x_features["integral"] = np.trapz(x_signal, axis=0)
     x_features["ma"] = np.max(x_signal, axis=0)
     x_features["mi"] = np.max(x_signal, axis=0)
+
+    print("Using default features: ", x_features.keys())
 
     return x_features
