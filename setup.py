@@ -20,7 +20,8 @@ required = [
 ]
 
 setup(
-    name="basys4ipps_ifw_agent",    
+    name="basys4ipps_ifw_agent",
+    python_requires='<3.11.0',  
     version=VERSION,
     install_requires=required,
     url="https://github.com/Hendrik2606/BaSys4IPPS_IFW_Agent",
@@ -29,6 +30,6 @@ setup(
     },
     entry_points={"console_scripts": ["basys-agent = cli:main"]},
     py_modules=['basys4ipps_ifw_agent'],
-    include_package_data=True
+    include_package_data=True,
 )
 # winget install graphviz
