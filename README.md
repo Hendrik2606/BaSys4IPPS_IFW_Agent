@@ -7,10 +7,13 @@ To execute signed python (<3.11) scripts in powershell, it necessary to run the 
 Set-ExecutionPolicy RemoteSigned
 ````
 To create a virtual environment and install the setup, use:
-```` 
+````pwsh
 # Use virtual environment (example for Windows OS)
 
 py -3 -m venv venv3
+# Alternatively create virtual environment with a specific python version:
+# C:\Users\<Username>\AppData\Local\Programs\Python\Python39\python.exe -m venv venv3
+
 ./venv3/Scripts/activate
 
 # Install the project
