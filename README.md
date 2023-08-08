@@ -2,9 +2,14 @@
 Calculation of failure probabilities using uniform outlier scores of machine components determined from regular test cycle (Python).
 
 # How to Install
-
+To execute signed python scripts in powershell, it necessary to run the following command with administrator rights in a powershell terminal:
+````pwsh
+Set-ExecutionPolicy RemoteSigned
+````
+To create a virtual environment and install the setup, use:
 ```` 
 # Use virtual environment (example for Windows OS)
+
 py -3 -m venv venv3
 ./venv3/Scripts/activate
 
