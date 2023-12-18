@@ -26,7 +26,7 @@ setup(
     install_requires=required,
     url="https://github.com/Hendrik2606/BaSys4IPPS_IFW_Agent",
     extras_require={
-        "dev": ["pylint", "black", "sphinx"],
+        "dev": ["pylint", "black", "sphinx", "openpyxl"],
     },
     entry_points={"console_scripts": ["basys-agent = cli:main"]},
     py_modules=['basys4ipps_ifw_agent'],
