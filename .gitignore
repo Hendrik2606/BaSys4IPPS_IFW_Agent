@@ -142,3 +142,4 @@ user_data.yaml
 *.pkl
 .vscode/
 ./examples/train/
+!examples/failure_duration_list.xlsx
